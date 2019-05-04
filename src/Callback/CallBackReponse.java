@@ -11,7 +11,17 @@ package Callback;
  */
 public abstract class CallBackReponse {
     
-    public abstract void setResultat(Object objet);
-    public abstract void setErreur(String message);
+    public abstract void onSucess(Object object);
+    public abstract void onErreur(String message);
+    public abstract void onProcessing(String message);
     
 }
+
+
+
+
+
+
+
+
+

@@ -8,91 +8,58 @@ package BASE;
 import Callback.CallBackObjetNetWork;
 import Callback.CallBackObjetNetWorks;
 import Callback.CallBackReponse;
-import java.lang.reflect.Field;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Vector;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  *
  * @author HP Pavilion
  */
 public abstract class ObjetNetWork {
-    
-    private static Vector<Constante> constante = new Vector<>();
-    protected static String adresseServeur;
+
+    private String adresseServeur;
 
     public ObjetNetWork(String adresseServeur) {
         this.adresseServeur = adresseServeur;
-        setConstantes(constante);
     }
 
-    public void initConstantes(){
-        setConstantes(constante);
-    }
-    
-    public static String getConstanteS(int code, Class NomClasse) {
-        String rep = "INCONNU";
-        for (Constante co : constante) {
-            if (co.getCode() == code && NomClasse.equals(co.getNomClasse())) {
-                return co.getValeur();
-            }
-        }
-        return rep;
+    public String getAdresseServeur() {
+        return adresseServeur;
     }
 
-    public static int getConstanteI(String valeur) {
-        int rep = -1;
-        for (Constante co : constante) {
-            if (co.getValeur().equals(valeur)) {
-                return co.getCode();
-            }
-        }
-        return rep;
+    public void setAdresseServeur(String adresseServeur) {
+        this.adresseServeur = adresseServeur;
     }
 
-    public static JSONObject getJSON(Class NomClasse, Object object) {
-        JSONObject objJSON = null;
+    public static String getJSON(Object object) {
+        String jsonString = "";
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            objJSON = new JSONObject();
-            for (Field attribut : NomClasse.getFields()) {
-                objJSON.put(attribut.getName(), attribut.get(object) + "");
-            }
+            jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+            //System.out.println(jsonString);
         } catch (Exception e) {
             e.printStackTrace();
-            objJSON = null;
         }
-        return objJSON;
+        return jsonString;
     }
 
-    public static Object getObjet(Class NomClasse, JSONObject objJSON) {
+    public static Object getObjet(Class NomClasse, String JSONString) {
         Object obj = null;
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            obj = NomClasse.newInstance();
-            for (Field attribut : NomClasse.getFields()) {
-                //System.out.println("**"+attribut);
-                if (objJSON.has(attribut.getName())) {
-                    if (attribut.getType() == int.class) {
-                        attribut.set(obj, objJSON.getInt(attribut.getName()));
-                    } else if (attribut.getType() == double.class) {
-                        attribut.set(obj, objJSON.getDouble(attribut.getName()));
-                    } else {
-                        attribut.set(obj, objJSON.get(attribut.getName()) + "");
-                    }
-                }
-            }
+            obj = mapper.readValue(JSONString, NomClasse);
+            //System.out.println(obj.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            obj = null;
         }
         return obj;
     }
 
-    public static Vector getListe(Class NomClasse, JSONArray jSONArray) {
+    public static Vector getListe(Class NomClasse, String[] jSONArrayString) {
         Vector<Object> lisObjects = new Vector<Object>();
         try {
-            for (int i = 0; i < jSONArray.length(); i++) {
-                JSONObject js_utilisateur = jSONArray.getJSONObject(i);
+            for (int i = 0; i < jSONArrayString.length; i++) {
+                String js_utilisateur = jSONArrayString[i];
                 Object utt = getObjet(NomClasse, js_utilisateur);
                 lisObjects.add(utt);
             }
@@ -102,32 +69,36 @@ public abstract class ObjetNetWork {
         return lisObjects;
     }
 
-    
-    public void POST_CHARGER(String adresseServeur, String parametres, CallBackObjetNetWork callBackObjetNetWork) {
+    public void POST_CHARGER(String parametres, CallBackObjetNetWork callBackObjetNetWork) {
         //www.s2b-simple.com/sepcongo/json/SEPProcesseur.php?action=101&id=27&idUtilisateur=27
         //String url = "http://www.s2b-simple.com/sepcongo/json/SEPProcesseur.php?action=101&id=" + id + "&idUtilisateur=" + idUtilisateur;
         parametres = adresseServeur + "?" + parametres;
         parametres = parametres.replaceAll(" ", "%20");
         try {
-            ClientHttp clientHttp = new ClientHttp(parametres, new JSONObject(), new CallBackReponse() {
+            ClientHttp clientHttp = new ClientHttp(parametres, "", new CallBackReponse() {
+
                 @Override
-                public void setResultat(Object objet) {
+                public void onSucess(Object object) {
                     try {
-                        JSONObject jSONObject = new JSONObject(objet + "");
-                        callBackObjetNetWork.getObjetNetWork(jSONObject);
+                        callBackObjetNetWork.onDone(object + "");
                     } catch (Exception e) {
                         e.printStackTrace();
-                        callBackObjetNetWork.getErreur(e.getMessage());
+                        callBackObjetNetWork.onError(e.getMessage());
                     }
                 }
 
                 @Override
-                public void setErreur(String message) {
-                    callBackObjetNetWork.getErreur(message);
+                public void onErreur(String message) {
+                    callBackObjetNetWork.onError(message);
+                }
+
+                @Override
+                public void onProcessing(String message) {
+                    callBackObjetNetWork.onProcessing(message);
                 }
             });
         } catch (Exception e) {
-            callBackObjetNetWork.getErreur(e.getMessage());
+            callBackObjetNetWork.onError(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -138,57 +109,69 @@ public abstract class ObjetNetWork {
         parametres = adresseServeur + "?" + parametres;
         parametres = parametres.replaceAll(" ", "%20");
         try {
-            JSONObject jSONObject = getJSON(NewObjetc.getClass(), NewObjetc);
-            ClientHttp clientHttp = new ClientHttp(parametres, jSONObject, new CallBackReponse() {
+            String jsonString = getJSON(NewObjetc);
+            ClientHttp clientHttp = new ClientHttp(parametres, jsonString, new CallBackReponse() {
+
                 @Override
-                public void setResultat(Object objet) {
+                public void onSucess(Object object) {
                     try {
-                        Reponse reponse = (Reponse) getObjet(Reponse.class, new JSONObject(objet + ""));
-                        callBackReponse.setResultat(reponse);
+                        Reponse reponse = (Reponse) getObjet(Reponse.class, object + "");
+                        callBackReponse.onSucess(reponse);
                     } catch (Exception e) {
-                        callBackReponse.setErreur(e.getMessage());
+                        callBackReponse.onErreur(e.getMessage());
                         e.printStackTrace();
                     }
                 }
 
                 @Override
-                public void setErreur(String message) {
-                    callBackReponse.setErreur(message);
+                public void onErreur(String message) {
+                    callBackReponse.onErreur(message);
+                }
+
+                @Override
+                public void onProcessing(String message) {
+                    callBackReponse.onProcessing(message);
                 }
             });
 
         } catch (Exception e) {
-            callBackReponse.setErreur(e.getMessage());
+            callBackReponse.onErreur(e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public void POST_SUPPRIMER(String adresseServeur, String parametres, CallBackReponse callBackReponse) {
+    public void POST_SUPPRIMER(String parametres, CallBackReponse callBackReponse) {
         //http://www.s2b-simple.com/sepcongo/json/SEPProcesseur.php?action=105&id=36&idUtilisateur=27
         //String url = "http://www.s2b-simple.com/sepcongo/json/SEPProcesseur.php?action=105&id=" + id + "&idUtilisateur=" + idUtilisateur;
         parametres = adresseServeur + "?" + parametres;
         parametres = parametres.replaceAll(" ", "%20");
         try {
-            ClientHttp clientHttp = new ClientHttp(parametres, new JSONObject(), new CallBackReponse() {
+            ClientHttp clientHttp = new ClientHttp(parametres, "", new CallBackReponse() {
+                
                 @Override
-                public void setResultat(Object objet) {
+                public void onSucess(Object object) {
                     try {
-                        Reponse reponse = (Reponse) getObjet(Reponse.class, new JSONObject(objet + ""));
-                        callBackReponse.setResultat(reponse);
+                        Reponse reponse = (Reponse) getObjet(Reponse.class, object + "");
+                        callBackReponse.onSucess(reponse);
                     } catch (Exception e) {
-                        callBackReponse.setErreur(e.getMessage());
+                        callBackReponse.onErreur(e.getMessage());
                         e.printStackTrace();
                     }
                 }
 
                 @Override
-                public void setErreur(String message) {
-                    callBackReponse.setErreur(message);
+                public void onErreur(String message) {
+                    callBackReponse.onErreur(message);
+                }
+
+                @Override
+                public void onProcessing(String message) {
+                    callBackReponse.onProcessing(message);
                 }
             });
 
         } catch (Exception e) {
-            callBackReponse.setErreur(e.getMessage());
+            callBackReponse.onErreur(e.getMessage());
             e.printStackTrace();
         }
 
@@ -200,26 +183,33 @@ public abstract class ObjetNetWork {
         parametres = adresseServeur + "?" + parametres;
         parametres = parametres.replaceAll(" ", "%20");
         try {
-            JSONObject cri = getJSON(critere.getClass(), critere);
+            String cri = getJSON(critere);
             ClientHttp clientHttp = new ClientHttp(parametres, cri, new CallBackReponse() {
+                
                 @Override
-                public void setResultat(Object objet) {
+                public void onSucess(Object object) {
                     try {
-                        JSONArray tabObj = new JSONArray(objet + "");
-                        callBackObjetNetWorks.getObjetNetWorks(tabObj);
+                        //JSONArray tabObj = new JSONArray(objet + "");
+                        String[] tabJSONObjts = (String[]) object;
+                        callBackObjetNetWorks.onDone(tabJSONObjts);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        callBackObjetNetWorks.getErreur(e.getMessage());
+                        callBackObjetNetWorks.onError(e.getMessage());
                     }
                 }
 
                 @Override
-                public void setErreur(String message) {
-                    callBackObjetNetWorks.getErreur(message);
+                public void onErreur(String message) {
+                    callBackObjetNetWorks.onError(message);
+                }
+
+                @Override
+                public void onProcessing(String message) {
+                    callBackObjetNetWorks.onProgress(message);
                 }
             });
         } catch (Exception e) {
-            callBackObjetNetWorks.getErreur(e.getMessage());
+            callBackObjetNetWorks.onError(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -230,44 +220,75 @@ public abstract class ObjetNetWork {
         parametres = adresseServeur + "?" + parametres;
         parametres = parametres.replaceAll(" ", "%20");
         try {
-            JSONObject js_util = getJSON(newObjct.getClass(), newObjct);
+            String js_util = getJSON(newObjct);
             ClientHttp clientHttp = new ClientHttp(parametres, js_util, new CallBackReponse() {
+                
                 @Override
-                public void setResultat(Object objet) {
+                public void onSucess(Object object) {
                     try {
-                        Reponse reponse = (Reponse) getObjet(Reponse.class, new JSONObject(objet + ""));
-                        callBackReponse.setResultat(reponse);
+                        Reponse reponse = (Reponse) getObjet(Reponse.class, object + "");
+                        callBackReponse.onSucess(reponse);
                     } catch (Exception e) {
-                        callBackReponse.setErreur(e.getMessage());
+                        callBackReponse.onErreur(e.getMessage());
                         e.printStackTrace();
                     }
                 }
 
                 @Override
-                public void setErreur(String message) {
-                    callBackReponse.setErreur(message);
+                public void onErreur(String message) {
+                    callBackReponse.onErreur(message);
+                }
+
+                @Override
+                public void onProcessing(String message) {
+                    callBackReponse.onProcessing(message);
                 }
             });
 
         } catch (Exception e) {
-            callBackReponse.setErreur(e.getMessage());
+            callBackReponse.onErreur(e.getMessage());
             e.printStackTrace();
         }
 
     }
-
-    public abstract void setConstantes(Vector<Constante> constante);
-    
-    public abstract void NetWork_supprimer(int idObj, int idUtilisateur, CallBackReponse callBackReponse);
-    
-    public abstract void NetWork_modifier(int idUtilisateur, Object newObjet, CallBackReponse callBackReponse);
-    
-    public abstract void NetWork_login(String email, String motdepasse, CallBackObjetNetWork callBackObjetNetWork);
-    
-    public abstract void NetWork_charger_via_idObj(int idObj, int idUtilisateur, CallBackObjetNetWork callBackObjetNetWork);
-    
-    public abstract void NetWork_enregistrer(int idUtilisateur, Object newObjet, CallBackReponse callBackReponse);
-    
-    public abstract void NetWork_lister(String dateA, String dateB, int idUtilisateur, int pageEncours, int taillePage, Object objCritere, CallBackObjetNetWorks callBackObjetNetWorks);
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

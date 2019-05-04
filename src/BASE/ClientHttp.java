@@ -18,7 +18,6 @@ import java.net.URL;
 import java.io.BufferedInputStream;
 import java.io.OutputStream;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONObject;
 //import javax.net.ssl.HttpsURLConnection;
 
 public class ClientHttp {
@@ -27,50 +26,22 @@ public class ClientHttp {
     private static String str_APP_JSON = "application/json; charset=UTF-8";
     private static String str_content_type = "Content-Type";
 
-    public static void main(String[] args) {
+    public ClientHttp(String lienHttp, String corps, CallBackReponse callBackPost) {
         try {
-
-            JSONObject jsonObjet = new JSONObject();
-            //jsonObjet.put("id", -1);
-            //jsonObjet.put("nom", "SULA");
-            //jsonObjet.put("postnom", "BOSIO");
-            //jsonObjet.put("age", 32);
-            //System.out.println(jsonObjet);
-
-            //Exemple : UTILISATEUR - CHARGER VIA ID
-            ClientHttp clienthttp = new ClientHttp("http://www.s2b-simple.com/sepcongo/json/SEPProcesseur.php?action=101&id=27&idUtilisateur=27", jsonObjet, new CallBackReponse() {
-                @Override
-                public void setResultat(Object objet) {
-                    System.out.println(objet);
-                }
-
-                @Override
-                public void setErreur(String message) {
-                    System.out.println("Exception : " + message);
-                }
-            });
-
-            System.out.println("Envoie de la requête...");
-
+            post(lienHttp, corps, callBackPost);
         } catch (Exception ioe) {
-            System.out.println("Erreur !");
+            callBackPost.onErreur("Erreur !");
             ioe.printStackTrace();
         }
     }
 
-    public ClientHttp(String lienHttp, JSONObject corp, CallBackReponse callBackPost) {
-        try {
-            post(lienHttp, corp, callBackPost);
-        } catch (Exception ioe) {
-            callBackPost.setErreur("Erreur !");
-            ioe.printStackTrace();
-        }
-    }
-
-    public void post(String postUrl, JSONObject data, CallBackReponse callBackPost) throws IOException {
+    private void post(String postUrl, String data, CallBackReponse callBackPost) throws IOException {
         Thread th = new Thread() {
             public void run() {
                 try {
+                    if(callBackPost != null){
+                        callBackPost.onProcessing("Connexion en cours...");
+                    }
                     URL url = new URL(postUrl);
                     HttpURLConnection con = (HttpURLConnection) url.openConnection();
                     con.setConnectTimeout(5000);
@@ -80,7 +51,7 @@ public class ClientHttp {
                     con.setRequestMethod(str_POST);
                     //Envoi des données
                     OutputStream os = con.getOutputStream();
-                    os.write(data.toString().getBytes(str_UTF8));
+                    os.write(data.getBytes(str_UTF8));
                     os.close();
                     //Lectue de données venant du serveur
                     InputStream in = new BufferedInputStream(con.getInputStream());
@@ -90,9 +61,13 @@ public class ClientHttp {
                     con.disconnect();
                     //Renvoi du callBack
                     
-                    callBackPost.setResultat(resultatServeur);
+                    if(callBackPost != null){
+                        callBackPost.onSucess(resultatServeur);
+                    }
                 } catch (Exception e) {
-                    callBackPost.setErreur(e.getMessage());
+                    if(callBackPost != null){
+                        callBackPost.onErreur(e.getMessage());
+                    }
                     e.printStackTrace();
                 }
             }
@@ -100,3 +75,28 @@ public class ClientHttp {
         th.start();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

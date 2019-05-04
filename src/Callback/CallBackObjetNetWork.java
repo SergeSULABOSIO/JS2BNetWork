@@ -5,13 +5,20 @@
  */
 package Callback;
 
-import org.json.JSONObject;
 
 /**
  *
  * @author HP Pavilion
  */
 public abstract class CallBackObjetNetWork {
-    public abstract void getObjetNetWork(JSONObject object);
-    public abstract void getErreur(String message);
+    public abstract void onDone(String JsonObject);
+    public abstract void onError(String message);
+    public abstract void onProcessing(String message);
 }
+
+
+
+
+
+
+

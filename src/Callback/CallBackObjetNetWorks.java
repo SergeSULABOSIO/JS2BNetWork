@@ -5,13 +5,19 @@
  */
 package Callback;
 
-import org.json.JSONArray;
 
 /**
  *
  * @author HP Pavilion
  */
 public abstract class CallBackObjetNetWorks {
-    public abstract void getObjetNetWorks(JSONArray objects);
-    public abstract void getErreur(String message);
+    public abstract void onDone(String[] objects);
+    public abstract void onProgress(String message);
+    public abstract void onError(String message);
 }
+
+
+
+
+
+
