@@ -83,7 +83,7 @@ public class Demo extends javax.swing.JFrame {
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel5.setText("Email :");
 
-        chEmail.setText("abc");
+        chEmail.setText("sulabosiog@gmail.com");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

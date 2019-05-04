@@ -181,7 +181,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="chEmail">
       <Properties>
-        <Property name="text" type="java.lang.String" value="abc"/>
+        <Property name="text" type="java.lang.String" value="sulabosiog@gmail.com"/>
       </Properties>
     </Component>
   </SubComponents>

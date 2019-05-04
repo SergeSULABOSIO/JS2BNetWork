@@ -20,7 +20,11 @@ public abstract class ObjetNetWork {
     private String adresseServeur;
 
     public ObjetNetWork(String adresseServeur) {
-        this.adresseServeur = adresseServeur;
+        if(!adresseServeur.startsWith("http://")){
+            this.adresseServeur = "http://" + adresseServeur;
+        }else{
+            this.adresseServeur = adresseServeur;
+        }
     }
 
     public String getAdresseServeur() {
