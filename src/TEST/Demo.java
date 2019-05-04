@@ -220,7 +220,7 @@ public class Demo extends javax.swing.JFrame {
         int action = Integer.parseInt(chAction.getText().trim());
 
         ObjetTest otest = new ObjetTest(id, password, email, serveur);
-
+        
         String parametres = "action=" + action + "&id=" + otest.getId() + "&motDePasse=" + otest.getMotdepasse() + "&email=" + otest.getEmail();
         setTitle(otest.getAdresseServeur() + "?" + parametres);
 
@@ -232,7 +232,7 @@ public class Demo extends javax.swing.JFrame {
                     labEtat.setText("Prêt.");
                     progress.setIndeterminate(false);
                     if (JsonObject.trim().length() != 0) {
-
+                        
                         ObjectMapper mapper = new ObjectMapper();
                         Object[] tabO = mapper.readValue(JsonObject.toString(), Object[].class);
                         if (tabO.length != 0) {
