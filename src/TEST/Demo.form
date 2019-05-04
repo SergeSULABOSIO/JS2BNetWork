@@ -107,7 +107,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="chAdresseServeur">
       <Properties>
-        <Property name="text" type="java.lang.String" value="http://www.visiterlardc.com/s2b/ProcesseurS2B.php"/>
+        <Property name="text" type="java.lang.String" value="http://www.visiterlardc.com/s2b/processeurS2B.php"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">

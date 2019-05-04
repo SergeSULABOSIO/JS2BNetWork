@@ -6,6 +6,7 @@
 package TEST;
 
 import Callback.CallBackObjetNetWork;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
@@ -50,7 +51,7 @@ public class Demo extends javax.swing.JFrame {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel1.setText("Adresse : ");
 
-        chAdresseServeur.setText("http://www.visiterlardc.com/s2b/ProcesseurS2B.php");
+        chAdresseServeur.setText("http://www.visiterlardc.com/s2b/processeurS2B.php");
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel2.setText("Id:");
@@ -217,25 +218,40 @@ public class Demo extends javax.swing.JFrame {
         String serveur = chAdresseServeur.getText();
         String email = chEmail.getText();
         int action = Integer.parseInt(chAction.getText().trim());
-        
+
         ObjetTest otest = new ObjetTest(id, password, email, serveur);
-        
-        String parametres = "action="+action+"&id="+otest.getId()+"&motDePasse="+otest.getMotdepasse()+"&email="+otest.getEmail();
-        setTitle(otest.getAdresseServeur()+ "?" + parametres);
-        
+
+        String parametres = "action=" + action + "&id=" + otest.getId() + "&motDePasse=" + otest.getMotdepasse() + "&email=" + otest.getEmail();
+        setTitle(otest.getAdresseServeur() + "?" + parametres);
+
         otest.POST_CHARGER(parametres, new CallBackObjetNetWork() {
-            
+
             @Override
             public void onDone(String JsonObject) {
-                labEtat.setText("Prêt.");
-                progress.setIndeterminate(false);
-                if(JsonObject.trim().length() != 0){
-                    System.out.println(JsonObject);
-                    chArea.setText(JsonObject.toString());
-                }else{
-                    chArea.setText("Aucune réponse venant du serveur!");
-                    System.out.println("[" + otest.getAdresseServeur()+"]: Aucune réponse du serveur !");
+                try {
+                    labEtat.setText("Prêt.");
+                    progress.setIndeterminate(false);
+                    if (JsonObject.trim().length() != 0) {
+
+                        ObjectMapper mapper = new ObjectMapper();
+                        Object[] tabO = mapper.readValue(JsonObject.toString(), Object[].class);
+                        if (tabO.length != 0) {
+                            chArea.append("LISTE D'OBJETS IDENTIFIES\n");
+                            for (Object o : tabO) {
+                                chArea.append(" -- " + o.toString() + "\n\n");
+                            }
+                        } else {
+                            chArea.append("Aucun element !\n");
+                        }
+
+                    } else {
+                        chArea.setText("Aucune réponse venant du serveur!");
+                        System.out.println("[" + otest.getAdresseServeur() + "]: Aucune réponse du serveur !");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
             }
 
             @Override
@@ -255,4 +271,3 @@ public class Demo extends javax.swing.JFrame {
         });
     }
 }
-
