@@ -72,6 +72,7 @@ public class Demo extends javax.swing.JFrame {
         labEtat.setText("Prêt.");
 
         chArea.setColumns(20);
+        chArea.setLineWrap(true);
         chArea.setRows(5);
         jScrollPane1.setViewportView(chArea);
 
@@ -145,8 +146,8 @@ public class Demo extends javax.swing.JFrame {
                     .addComponent(btvalider)
                     .addComponent(labEtat))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 205, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
