@@ -119,8 +119,8 @@ public abstract class ObjetNetWork {
                 @Override
                 public void onSucess(Object object) {
                     try {
-                        Reponse reponse = (Reponse) getObjet(Reponse.class, object + "");
-                        callBackReponse.onSucess(reponse);
+                        //Reponse reponse = (Reponse) getObjet(Reponse.class, object + "");
+                        callBackReponse.onSucess(object);
                     } catch (Exception e) {
                         callBackReponse.onErreur(e.getMessage());
                         e.printStackTrace();
